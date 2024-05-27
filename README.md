@@ -1,6 +1,3 @@
-Here's the revised README.md with improved formatting and readability:
-
-```markdown
 # RESTful API Overview and Implementation Guide
 
 ## Table of Contents
