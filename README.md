@@ -82,6 +82,85 @@ Endpoints are specific URLs that clients interact with to access or manipulate r
 
 ## Design and Best Practices
 - Use nouns for resources (`/users`, `/products`).
+
+### 1. Use nouns for resources (/users, /products):
+
+```csharp
+// ASP.NET Core example
+using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+
+namespace MyAPI.Controllers
+{
+    [ApiController]
+    [Route("[controller]")]
+    public class UsersController : ControllerBase
+    {
+        [HttpGet]
+        public IEnumerable<string> GetUsers()
+        {
+            // Logic to fetch users data from the database
+            var users = new List<string>(); // Assuming users data is fetched
+            return users;
+        }
+    }
+
+    [ApiController]
+    [Route("[controller]")]
+    public class ProductsController : ControllerBase
+    {
+        [HttpGet]
+        public IEnumerable<string> GetProducts()
+        {
+            // Logic to fetch products data from the database
+            var products = new List<string>(); // Assuming products data is fetched
+            return products;
+        }
+    }
+}
+```
+
+### 2. Use plurals for collections (/users vs /user):
+
+```csharp
+// ASP.NET Core example
+using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+
+namespace MyAPI.Controllers
+{
+    [ApiController]
+    [Route("[controller]")]
+    public class UsersController : ControllerBase
+    {
+        [HttpGet]
+        public IEnumerable<string> GetUsers()
+        {
+            // Logic to fetch users data from the database
+            var users = new List<string>(); // Assuming users data is fetched
+            return users;
+        }
+    }
+
+    [ApiController]
+    [Route("[controller]")]
+    public class UserController : ControllerBase  // Singular form
+    {
+        [HttpGet("{id}")]
+        public string GetUser(int id)
+        {
+            // Logic to fetch user data from the database
+            var user = "User " + id.ToString(); // Assuming user data is fetched
+            return user;
+        }
+    }
+}
+```
+
+In this example, the first controller (`UsersController`) handles the collection of users, while the second controller (`UserController`) handles individual user resources. The plural form (`UsersController`) is used for the collection, and the singular form (`UserController`) is used for individual resources.
+
+
+
 - Use plurals for collections (`/users` vs `/user`).
 - Use hierarchical structure for nested resources (`/users/1/orders`).
 - Implement HATEOAS (Hypermedia As The Engine Of Application State).
