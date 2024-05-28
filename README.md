@@ -83,8 +83,6 @@ Endpoints are specific URLs that clients interact with to access or manipulate r
 ## Design and Best Practices
 - Use nouns for resources (`/users`, `/products`).
 
-### 1. Use nouns for resources (/users, /products):
-
 ```csharp
 // ASP.NET Core example
 using Microsoft.AspNetCore.Mvc;
@@ -120,7 +118,7 @@ namespace MyAPI.Controllers
 }
 ```
 
-### 2. Use plurals for collections (/users vs /user):
+- Use plurals for collections (`/users` vs `/user`).
 
 ```csharp
 // ASP.NET Core example
@@ -157,13 +155,143 @@ namespace MyAPI.Controllers
 }
 ```
 
-In this example, the first controller (`UsersController`) handles the collection of users, while the second controller (`UserController`) handles individual user resources. The plural form (`UsersController`) is used for the collection, and the singular form (`UserController`) is used for individual resources.
-
-
-
-- Use plurals for collections (`/users` vs `/user`).
 - Use hierarchical structure for nested resources (`/users/1/orders`).
+```csharp
+using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+
+namespace MyAPI.Controllers
+{
+    [ApiController]
+    [Route("[controller]")]
+    public class UsersController : ControllerBase
+    {
+        // GET /users
+        [HttpGet]
+        public IEnumerable<User> GetUsers()
+        {
+            // Logic to fetch users data from the database
+            var users = new List<User>(); // Assuming users data is fetched
+            return users;
+        }
+
+        // GET /users/1
+        [HttpGet("{userId}")]
+        public User GetUser(int userId)
+        {
+            // Logic to fetch user data from the database based on userId
+            var user = new User(); // Assuming user data is fetched
+            return user;
+        }
+
+        // GET /users/1/orders
+        [HttpGet("{userId}/orders")]
+        public IEnumerable<Order> GetUserOrders(int userId)
+        {
+            // Logic to fetch orders data for the specified user from the database
+            var orders = new List<Order>(); // Assuming orders data is fetched
+            return orders;
+        }
+    }
+
+    public class User
+    {
+        // Properties of the User class
+        public int Id { get; set; }
+        public string Name { get; set; }
+        // Other properties...
+    }
+
+    public class Order
+    {
+        // Properties of the Order class
+        public int Id { get; set; }
+        public string OrderNumber { get; set; }
+        // Other properties...
+    }
+}
+```
+In this example, the UsersController handles hierarchical structure with nested resources. The endpoint /users returns a collection of users, /users/{userId} returns an individual user, and /users/{userId}/orders returns orders associated with a specific user. This follows the hierarchical structure where orders is nested under users.
+
+
 - Implement HATEOAS (Hypermedia As The Engine Of Application State).
+
+```csharp
+using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+
+namespace MyAPI.Controllers
+{
+    [ApiController]
+    [Route("[controller]")]
+    public class UsersController : ControllerBase
+    {
+        private readonly IUrlHelper _urlHelper; // Injecting IUrlHelper to generate hypermedia links
+
+        public UsersController(IUrlHelper urlHelper)
+        {
+            _urlHelper = urlHelper;
+        }
+
+        [HttpGet]
+        public IActionResult GetUsers()
+        {
+            // Logic to fetch users data from the database
+            var users = new List<User>(); // Assuming users data is fetched
+            
+            // Generating hypermedia links for each user
+            var usersWithLinks = new List<UserWithLinks>();
+            foreach (var user in users)
+            {
+                var userLinks = new List<Link>
+                {
+                    new Link(_urlHelper.Link("GetUser", new { id = user.Id }), "self", "GET"),
+                    new Link(_urlHelper.Link("UpdateUser", new { id = user.Id }), "update_user", "PUT"),
+                    new Link(_urlHelper.Link("DeleteUser", new { id = user.Id }), "delete_user", "DELETE")
+                    // Additional links for other actions...
+                };
+                usersWithLinks.Add(new UserWithLinks(user, userLinks));
+            }
+
+            return Ok(usersWithLinks);
+        }
+
+        [HttpGet("{id}", Name = "GetUser")]
+        public IActionResult GetUser(int id)
+        {
+            // Logic to fetch user data from the database based on userId
+            var user = new User(); // Assuming user data is fetched
+            var userLinks = new List<Link>
+            {
+                new Link(_urlHelper.Link("GetUser", new { id }), "self", "GET"),
+                new Link(_urlHelper.Link("UpdateUser", new { id }), "update_user", "PUT"),
+                new Link(_urlHelper.Link("DeleteUser", new { id }), "delete_user", "DELETE")
+                // Additional links for other actions...
+            };
+            var userWithLinks = new UserWithLinks(user, userLinks);
+
+            return Ok(userWithLinks);
+        }
+
+        // Other controller actions...
+
+        // Define your User and Link classes here...
+    }
+}
+```
+
+In this example:
+
+- The `GetUsers` and `GetUser` actions return user data along with hypermedia links. These links provide information on how clients can interact with the API, such as retrieving, updating, or deleting users.
+
+- The `IUrlHelper` service is injected into the controller to generate URLs for hypermedia links.
+
+- The `UserWithLinks` class is used to encapsulate user data along with hypermedia links.
+
+- The `Link` class represents a hypermedia link, containing the URL, the relation type (e.g., "self", "update_user"), and the HTTP method.
+
+This example demonstrates how HATEOAS can be implemented to provide clients with dynamic navigation and discoverability within the API.
+
 - Handle versioning gracefully (URI versioning, header versioning, query parameter versioning).
 - Ensure backward compatibility and provide clear migration paths for clients using older versions.
 
