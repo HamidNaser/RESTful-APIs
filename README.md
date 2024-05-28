@@ -405,7 +405,7 @@ namespace MyAPI.Controllers
 
 In this example:
 
-- URI versioning: Different versions of the `GetProduct` endpoint are mapped to different HTTP methods based on the requested API version.
+* URI versioning: Different versions of the `GetProduct` endpoint are mapped to different HTTP methods based on the requested API version.
 
 - Header versioning: The API version is extracted from the request headers, and the appropriate logic is executed based on the version.
 
