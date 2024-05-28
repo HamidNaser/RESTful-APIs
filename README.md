@@ -211,7 +211,11 @@ namespace MyAPI.Controllers
     }
 }
 ```
-In this example, the UsersController handles hierarchical structure with nested resources. The endpoint /users returns a collection of users, /users/{userId} returns an individual user, and /users/{userId}/orders returns orders associated with a specific user. This follows the hierarchical structure where orders is nested under users.
+In this example, 
+1.  The UsersController handles hierarchical structure with nested resources. 
+2.  The endpoint /users returns a collection of users, /users/{userId} returns an individual user.
+3.  The endpoint /users/{userId}/orders returns orders associated with a specific user. 
+4.  This follows the hierarchical structure where orders is nested under users.
 
 
 - Implement HATEOAS (Hypermedia As The Engine Of Application State).
@@ -322,15 +326,16 @@ namespace MyAPI.Controllers
 
 In this example:
 
-The `GetUsers` and `GetUser` actions return user data along with hypermedia links. These links provide information on how clients can interact with the API, such as retrieving, updating, or deleting users.
+1.  The `GetUsers` and `GetUser` actions return user data along with hypermedia links. These links provide information on how clients can interact with the API, such as retrieving, updating,    
+    or deleting users.
 
-The `IUrlHelper` service is injected into the controller to generate URLs for hypermedia links.
+2.  The `IUrlHelper` service is injected into the controller to generate URLs for hypermedia links.
 
-The `UserWithLinks` class is used to encapsulate user data along with hypermedia links.
+3.  The `UserWithLinks` class is used to encapsulate user data along with hypermedia links.
 
-The `Link` class represents a hypermedia link, containing the URL, the relation type (e.g., "self", "update_user"), and the HTTP method.
+4.  The `Link` class represents a hypermedia link, containing the URL, the relation type (e.g., "self", "update_user"), and the HTTP method.
 
-This example demonstrates how HATEOAS can be implemented to provide clients with dynamic navigation and discoverability within the API.
+5.  This example demonstrates how HATEOAS can be implemented to provide clients with dynamic navigation and discoverability within the API.
 
 - Handle versioning gracefully (URI versioning, header versioning, query parameter versioning).
 
@@ -411,7 +416,103 @@ In this example:
 
 3.  Query parameter versioning: The API version is extracted from the query parameters, and the appropriate logic is executed based on the version.
 
-Ensure backward compatibility and provide clear migration paths for clients using older versions.
+- Ensure backward compatibility and provide clear migration paths for clients using older versions.
+
+```csharp
+using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+
+namespace MyAPI.Controllers
+{
+    [ApiController]
+    [Route("api/v{version:apiVersion}/[controller]")]
+    [ApiVersion("1.0")]
+    [ApiVersion("2.0")]
+    public class ProductsController : ControllerBase
+    {
+        // Product data for demonstration
+        private static Dictionary<int, string> _productsV1 = new Dictionary<int, string>
+        {
+            { 1, "Product A" },
+            { 2, "Product B" },
+            { 3, "Product C" }
+        };
+
+        private static Dictionary<int, string> _productsV2 = new Dictionary<int, string>
+        {
+            { 1, "Product X" },
+            { 2, "Product Y" },
+            { 3, "Product Z" }
+        };
+
+        // Endpoint for getting product details
+        [HttpGet("{id}")]
+        public IActionResult GetProduct(int id, ApiVersion version)
+        {
+            // Check if the requested version is supported
+            if (version.MajorVersion == 1)
+            {
+                // Check if the product exists in version 1 data
+                if (_productsV1.ContainsKey(id))
+                {
+                    return Ok(new { Id = id, Name = _productsV1[id] });
+                }
+                else
+                {
+                    return NotFound();
+                }
+            }
+            else if (version.MajorVersion == 2)
+            {
+                // Check if the product exists in version 2 data
+                if (_productsV2.ContainsKey(id))
+                {
+                    return Ok(new { Id = id, Name = _productsV2[id] });
+                }
+                else
+                {
+                    return NotFound();
+                }
+            }
+            else
+            {
+                // Handle unsupported API version
+                return BadRequest("Unsupported API version");
+            }
+        }
+
+        // Endpoint for providing migration path guidance
+        [HttpGet("migration")]
+        public IActionResult MigrationGuide(ApiVersion version)
+        {
+            if (version.MajorVersion == 1)
+            {
+                // Provide guidance for migrating to version 2
+                return Ok("Please migrate to API version 2 for improved features and performance.");
+            }
+            else if (version.MajorVersion == 2)
+            {
+                // Inform clients that they are using the latest version
+                return Ok("You are currently using the latest version of the API (version 2).");
+            }
+            else
+            {
+                // Handle unsupported API version
+                return BadRequest("Unsupported API version");
+            }
+        }
+    }
+}
+```
+
+In this example:
+
+1.  The `GetProduct` endpoint retrieves product details based on the requested API version. It checks if the requested version is supported and then serves the appropriate data accordingly.
+
+2.  The `MigrationGuide` endpoint provides guidance for clients using older versions, directing them to migrate to the latest version for improved features and performance.
+
+By providing clear migration paths and handling backward compatibility gracefully, you ensure that clients using older versions of your API can smoothly transition to newer versions without encountering disruptions or errors.
 
 ## Error Handling and Status Codes
 - **200 OK**: The request was successful.
