@@ -405,11 +405,11 @@ namespace MyAPI.Controllers
 
 In this example:
 
-URI versioning: Different versions of the `GetProduct` endpoint are mapped to different HTTP methods based on the requested API version.
+1.  URI versioning: Different versions of the `GetProduct` endpoint are mapped to different HTTP methods based on the requested API version.
 
-Header versioning: The API version is extracted from the request headers, and the appropriate logic is executed based on the version.
+2.  Header versioning: The API version is extracted from the request headers, and the appropriate logic is executed based on the version.
 
-Query parameter versioning: The API version is extracted from the query parameters, and the appropriate logic is executed based on the version.
+3.  Query parameter versioning: The API version is extracted from the query parameters, and the appropriate logic is executed based on the version.
 
 Ensure backward compatibility and provide clear migration paths for clients using older versions.
 
