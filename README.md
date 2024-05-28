@@ -322,17 +322,95 @@ namespace MyAPI.Controllers
 
 In this example:
 
-- The `GetUsers` and `GetUser` actions return user data along with hypermedia links. These links provide information on how clients can interact with the API, such as retrieving, updating, or deleting users.
+The `GetUsers` and `GetUser` actions return user data along with hypermedia links. These links provide information on how clients can interact with the API, such as retrieving, updating, or deleting users.
 
-- The `IUrlHelper` service is injected into the controller to generate URLs for hypermedia links.
+The `IUrlHelper` service is injected into the controller to generate URLs for hypermedia links.
 
-- The `UserWithLinks` class is used to encapsulate user data along with hypermedia links.
+The `UserWithLinks` class is used to encapsulate user data along with hypermedia links.
 
-- The `Link` class represents a hypermedia link, containing the URL, the relation type (e.g., "self", "update_user"), and the HTTP method.
+The `Link` class represents a hypermedia link, containing the URL, the relation type (e.g., "self", "update_user"), and the HTTP method.
 
 This example demonstrates how HATEOAS can be implemented to provide clients with dynamic navigation and discoverability within the API.
 
 - Handle versioning gracefully (URI versioning, header versioning, query parameter versioning).
+
+Below code demonstrating how to handle versioning gracefully using three common approaches: URI versioning, header versioning, and query parameter versioning. We'll implement these approaches in an ASP.NET Core API controller:
+
+```csharp
+using Microsoft.AspNetCore.Mvc;
+using System;
+
+namespace MyAPI.Controllers
+{
+    [ApiController]
+    [Route("api/v{version:apiVersion}/[controller]")]
+    [ApiVersion("1.0")] // Default API version
+    [ApiVersion("2.0")]
+    public class ProductsController : ControllerBase
+    {
+        // URI versioning
+        [HttpGet("{id}")]
+        [MapToApiVersion("1.0")]
+        public IActionResult GetProductV1(int id)
+        {
+            return Ok(new { Id = id, Name = "Product V1" });
+        }
+
+        [HttpGet("{id}")]
+        [MapToApiVersion("2.0")]
+        public IActionResult GetProductV2(int id)
+        {
+            return Ok(new { Id = id, Name = "Product V2" });
+        }
+
+        // Header versioning
+        [HttpGet("{id}")]
+        public IActionResult GetProductHeaderVersion(int id)
+        {
+            var apiVersion = HttpContext.GetRequestedApiVersion().ToString();
+            if (apiVersion == "1.0")
+            {
+                return Ok(new { Id = id, Name = "Product V1" });
+            }
+            else if (apiVersion == "2.0")
+            {
+                return Ok(new { Id = id, Name = "Product V2" });
+            }
+            else
+            {
+                return BadRequest("Invalid API version");
+            }
+        }
+
+        // Query parameter versioning
+        [HttpGet("{id}")]
+        public IActionResult GetProductQueryVersion(int id, ApiVersion version)
+        {
+            if (version.MajorVersion == 1)
+            {
+                return Ok(new { Id = id, Name = "Product V1" });
+            }
+            else if (version.MajorVersion == 2)
+            {
+                return Ok(new { Id = id, Name = "Product V2" });
+            }
+            else
+            {
+                return BadRequest("Invalid API version");
+            }
+        }
+    }
+}
+```
+
+In this example:
+
+- URI versioning: Different versions of the `GetProduct` endpoint are mapped to different HTTP methods based on the requested API version.
+
+- Header versioning: The API version is extracted from the request headers, and the appropriate logic is executed based on the version.
+
+- Query parameter versioning: The API version is extracted from the query parameters, and the appropriate logic is executed based on the version.
+
 - Ensure backward compatibility and provide clear migration paths for clients using older versions.
 
 ## Error Handling and Status Codes
