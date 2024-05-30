@@ -219,6 +219,7 @@ In this example,
 
 
 - Implement HATEOAS (Hypermedia As The Engine Of Application State).
+Implementing HATEOAS (Hypermedia As The Engine Of Application State) involves including hypermedia links in API responses to guide clients on how to navigate the API and discover available actions or resources dynamically. 
 
 ```csharp
 using Microsoft.AspNetCore.Mvc;
@@ -655,10 +656,274 @@ Using an API gateway helps manage, secure, and monitor traffic. Here’s an exam
    - Use Postman, curl, or any HTTP client to test the routes exposed by the API gateway.
 
 
----
+## Authentication and Authorization
 
-### Authentication and Authorization
-How do you secure RESTful APIs? What are some common authentication methods used in RESTful APIs? How do you handle authorization for different types of users or roles?
+Securing RESTful APIs is essential to ensure that only authorized users can access your services and resources. This section covers how to implement authentication and authorization in your API, with code examples from our implementation.
+
+### How to Secure RESTful APIs?
+
+Securing RESTful APIs typically involves:
+1. **Authentication**: Verifying the identity of a user or system.
+2. **Authorization**: Determining if the authenticated user or system has permission to access a specific resource.
+
+### Common Authentication Methods
+
+1. **Basic Authentication**: Uses a username and password encoded in Base64.
+2. **Token-Based Authentication**: Uses tokens like JSON Web Tokens (JWT) for authentication.
+3. **OAuth**: A standard for token-based authentication and authorization.
+
+### Handling Authorization for Different Types of Users or Roles
+
+Authorization can be handled by assigning roles to users and defining which roles can access which resources. In this implementation, we use JWT for both authentication and authorization.
+
+### Implementation Details
+
+#### 1. JWT Authentication Controller
+
+**AuthenticationController.cs**
+
+This controller handles user login and token generation.
+
+```csharp
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using System;
+using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+
+namespace Authenication
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class AuthController : ControllerBase
+    {
+        private readonly string _secretKey;
+        private readonly string _issuer;
+        private readonly string _audience;
+
+        public AuthController(IConfiguration configuration)
+        {
+            _secretKey = configuration["AppSettings:JwtSecretKey"];
+            _issuer = configuration["AppSettings:Issuer"];
+            _audience = configuration["AppSettings:Audience"];
+        }
+
+        private readonly List<User> _users = new List<User>
+        {
+            new User { Id = 1, Username = "admin", Password = "admin123", Role = "admin" },
+            new User { Id = 2, Username = "user", Password = "user123", Role = "user" }
+        };
+
+        [AllowAnonymous]
+        [HttpPost("login")]
+        public IActionResult Login([FromBody] UserLogin model)
+        {
+            var user = AuthenticateUser(model.Username, model.Password);
+            if (user == null)
+                return Unauthorized();
+
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, user.Username),
+                new Claim(ClaimTypes.Role, user.Role)
+            };
+
+            var token = JwtHelper.GetJwtToken(
+                user.Username,
+                _secretKey,
+                _issuer,
+                _audience,
+                TimeSpan.FromMinutes(60),
+                claims.ToArray());
+
+            return Ok(new
+            {
+                token = new JwtSecurityTokenHandler().WriteToken(token),
+                expires = token.ValidTo
+            });
+        }
+
+        private User AuthenticateUser(string username, string password)
+        {
+            return _users.Find(u => u.Username == username && u.Password == password);
+        }
+    }
+}
+```
+
+#### 2. JWT Helper
+
+**JwtHelper.cs**
+
+This class generates JWT tokens.
+
+```csharp
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+
+namespace Authentication
+{
+    public class JwtHelper
+    {
+        public static JwtSecurityToken GetJwtToken(
+            string username,
+            string secretKey,
+            string issuer,
+            string audience,
+            TimeSpan expiration,
+            Claim[] additionalClaims = null)
+        {
+            var claims = new[]
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, username),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            };
+
+            if (additionalClaims != null)
+            {
+                var claimList = new List<Claim>(claims);
+                claimList.AddRange(additionalClaims);
+                claims = claimList.ToArray();
+            }
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            return new JwtSecurityToken(
+                issuer: issuer,
+                audience: audience,
+                expires: DateTime.UtcNow.Add(expiration),
+                claims: claims,
+                signingCredentials: creds
+            );
+        }
+    }
+}
+```
+
+#### 3. Protected Controller
+
+**ProtectedController.cs**
+
+This controller demonstrates how to secure endpoints with role-based authorization.
+
+```csharp
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using System.Linq;
+using System.Security.Claims;
+
+namespace Authenication
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class ProtectedController : ControllerBase
+    {
+        private readonly IConfiguration _configuration;
+
+        public ProtectedController(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "admin")]
+        public IActionResult GetProtectedData()
+        {
+            var userClaims = HttpContext.User.Claims;
+            var username = userClaims?.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+            var role = userClaims?.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+
+            if (role != "admin")
+            {
+                return Forbid();
+            }
+
+            return Ok($"Hello, {username}! This is protected data for users with 'admin' role.");
+        }
+    }
+}
+```
+
+#### 4. Program Configuration
+
+**Program.cs**
+
+Configures JWT authentication in the ASP.NET Core application.
+
+```csharp
+using Authenication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+
+var builder = WebApplication.CreateBuilder(args);
+
+var configuration = new ConfigurationBuilder()
+    .SetBasePath(builder.Environment.ContentRootPath)
+    .AddJsonFile("appsettings.json")
+    .Build();
+
+builder.Services.AddControllers();
+builder.Services.AddSwaggerGen();
+
+var secretKey = configuration["AppSettings:JwtSecretKey"];
+var issuer = configuration["AppSettings:Issuer"];
+var audience = configuration["AppSettings:Audience"];
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = issuer,
+            ValidateAudience = true,
+            ValidAudience = audience,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
+        };
+    });
+
+var app = builder.Build();
+
+app.UseSwagger();
+app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1"));
+
+app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapControllers();
+
+app.Run();
+```
+
+### Using the API
+
+1. **Login to Get Token**: Use the `/api/auth/login` endpoint to authenticate a user and retrieve a JWT token.
+   ```json
+   POST /api/auth/login
+   {
+       "username": "admin",
+       "password": "admin123"
+   }
+   ```
+
+2. **Access Protected Data**: Use the token in the `Authorization` header as a Bearer token to access protected endpoints.
+   ```http
+   GET /api/protected
+   Authorization: Bearer {your_jwt_token}
+   ```
+
+This section provides a clear and structured overview of implementing authentication and authorization in your API, ensuring secure access to resources based on user roles.
+
+
 
 ### Data Formats
 What are the commonly used data formats in RESTful APIs? Compare and contrast JSON and XML. When would you choose one over the other?
