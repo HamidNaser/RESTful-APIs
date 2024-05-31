@@ -338,7 +338,7 @@ In this example:
 
 5.  This example demonstrates how HATEOAS can be implemented to provide clients with dynamic navigation and discoverability within the API.
 
-### Versioning
+## Versioning
 
 ### Common API Versioning Approaches
 
