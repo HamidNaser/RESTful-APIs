@@ -906,20 +906,99 @@ app.Run();
 
 ### Using the API
 
-1. **Login to Get Token**: Use the `/api/auth/login` endpoint to authenticate a user and retrieve a JWT token.
-   ```json
-   POST /api/auth/login
-   {
-       "username": "admin",
-       "password": "admin123"
-   }
-   ```
+### Using Postman
 
-2. **Access Protected Data**: Use the token in the `Authorization` header as a Bearer token to access protected endpoints.
-   ```http
-   GET /api/protected
-   Authorization: Bearer {your_jwt_token}
-   ```
+### Step 1: Login to Get Token
+
+1. **Open Postman** and create a new request.
+2. **Set the request type** to `POST`.
+3. **Enter the request URL**: `https://localhost:7051/api/auth/login`.
+4. **Go to the Headers tab** and ensure `Content-Type` is set to `application/json`.
+5. **Go to the Body tab**, select `raw`, and enter the following JSON:
+
+    ```json
+    {
+        "username": "admin",
+        "password": "admin123"
+    }
+    ```
+
+6. **Click Send** to send the request.
+
+7. **Copy the token** from the response. It will look something like this:
+
+    ```json
+    {
+        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwibmJmIjoxNzE3MTAyODg5LCJleHAiOjE3MTcxMDY0ODksImlhdCI6MTcxNzEwMjg4OX0.4kjBIAZPbhQKiqKkjHnS58rVmYdftsfCxsqHz2DyGKE"
+    }
+    ```
+
+### Step 2: Access Protected Data
+
+1. **Create a new request** in Postman.
+2. **Set the request type** to `GET`.
+3. **Enter the request URL**: `https://localhost:7051/api/protected`.
+4. **Go to the Headers tab** and add a new header:
+    - **Key**: `Authorization`
+    - **Value**: `Bearer {eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwibmJmIjoxNzE3MTAyODg5LCJleHAiOjE3MTcxMDY0ODksImlhdCI6MTcxNzEwMjg4OX0.4kjBIAZPbhQKiqKkjHnS58rVmYdftsfCxsqHz2DyGKE}` 
+
+5. **Click Send** to send the request.
+
+6. **Check the response**. If the token is valid and the user has the correct role, you should see a response similar to:
+
+    ```json
+    {
+        "message": "Hello, admin! This is protected data for users with 'admin' role."
+    }
+    ```
+
+By following these steps in Postman, you can authenticate and access protected endpoints in your RESTful API.
+
+### Using C#
+
+```csharp
+using System;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Xml.Linq;
+using Newtonsoft.Json.Linq;
+
+class Program
+{
+    static async Task Main(string[] args)
+    {
+        try
+        {
+            // Step 1: Json Format
+            using (var client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+                var response = await client.GetAsync("https://localhost:7051/api/users/1");
+                var responseBody = await response.Content.ReadAsStringAsync();
+                Console.WriteLine(responseBody);
+            }
+
+            // Step 2: Xml Format
+            using (var client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/xml"));
+                var response = await client.GetAsync("https://localhost:7051/api/users/1");
+                var responseBody = await response.Content.ReadAsStringAsync();
+                Console.WriteLine(responseBody);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("An error occurred: " + ex.Message);
+        }
+    }
+}
+```
 
 This section provides a clear and structured overview of implementing authentication and authorization in your API, ensuring secure access to resources based on user roles.
 
@@ -1084,6 +1163,8 @@ public class UsersController : ControllerBase
 ```
 
 In the above example, the `AddXmlSerializerFormatters` method is used to enable XML formatting in addition to the default JSON formatting. The controller returns a user object, which can be returned in either JSON or XML format based on the client's `Accept` header.
+
+### Using the API
 
 To get either JSON or XML responses from your API, you need to set the `Accept` header in your HTTP request to indicate which format you prefer. Here’s how you can do it with different tools:
 
