@@ -906,9 +906,9 @@ app.Run();
 
 ### Using the API
 
-### Using Postman
+#### Using Postman
 
-### Step 1: Login to Get Token
+#### Step 1: Login to Get Token
 
 1. **Open Postman** and create a new request.
 2. **Set the request type** to `POST`.
@@ -933,7 +933,7 @@ app.Run();
     }
     ```
 
-### Step 2: Access Protected Data
+#### Step 2: Access Protected Data
 
 1. **Create a new request** in Postman.
 2. **Set the request type** to `GET`.
@@ -954,7 +954,7 @@ app.Run();
 
 By following these steps in Postman, you can authenticate and access protected endpoints in your RESTful API.
 
-### Using C#
+#### Using C#
 
 ```csharp
 using System;
@@ -1168,7 +1168,7 @@ In the above example, the `AddXmlSerializerFormatters` method is used to enable 
 
 To get either JSON or XML responses from your API, you need to set the `Accept` header in your HTTP request to indicate which format you prefer. Here’s how you can do it with different tools:
 
-### Using Postman
+#### Using Postman
 
 1. Open Postman and enter the URL of your API endpoint (e.g., `https://localhost:7051/api/users/1`).
 2. Select the HTTP method (e.g., GET).
@@ -1176,7 +1176,7 @@ To get either JSON or XML responses from your API, you need to set the `Accept` 
 4. Add a header with the key `Accept` and set the value to `application/json` or `application/xml` depending on the desired format.
 5. Click **Send**.
 
-### Using C#
+#### Using C#
 
 #### To get JSON or XML:
 ```csharp
