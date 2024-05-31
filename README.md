@@ -483,7 +483,8 @@ In this example:
 
 3.  Query parameter versioning: The API version is extracted from the query parameters, and the appropriate logic is executed based on the version.
 
-- Ensure backward compatibility and provide clear migration paths for clients using older versions.
+### Backward Compatibility
+Ensure backward compatibility and provide clear migration paths for clients using older versions.
 
 ```csharp
 using Microsoft.AspNetCore.Mvc;
