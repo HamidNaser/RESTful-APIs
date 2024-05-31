@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "lckfLASUVe7LDraXoPXplaQfp9bTrRddSrHectkf2vJViEV5W67OiYgYA3vAv3Fud+qMKEArTbuwNFrIg+TAdA==",
+  "success": true,
+  "projectFilePath": "C:\\GitHub\\RESTful-APIs\\ApiDataFormatClient\\ApiDataFormatClient.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Hamid\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512"
+  ],
+  "logs": []
+}

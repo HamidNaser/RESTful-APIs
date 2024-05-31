@@ -992,49 +992,70 @@ Here are examples of the same data represented in both JSON and XML formats.
 
 Here's how you can configure an ASP.NET Core API to return data in both JSON and XML formats.
 
-**Startup.cs (or Program.cs in newer versions)**
+**Program.cs**
 
 ```csharp
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Versioning;
+using Microsoft.OpenApi.Models;
+using System.Reflection;
+using RESTful_APIs;
 
-public class Startup
+var builder = WebApplication.CreateBuilder(args);
+
+var configuration = new ConfigurationBuilder()
+    .SetBasePath(builder.Environment.ContentRootPath)
+    .AddJsonFile("appsettings.json")
+    .Build();
+
+builder.Services.AddControllers().AddXmlSerializerFormatters();
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+
+builder.Services
+    .AddHttpContextAccessor()
+    .AddRouting()
+    .AddConnectServicesAndRepositories();
+
+builder.Services.AddCors(options => options.AddPolicy("CorsPolicy", builder =>
 {
-    public Startup(IConfiguration configuration)
+    builder.AllowAnyHeader()
+           .AllowAnyMethod()
+           .SetIsOriginAllowed((host) => true)
+           .AllowCredentials(); ;
+}));
+
+
+
+var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
     {
-        Configuration = configuration;
-    }
-
-    public IConfiguration Configuration { get; }
-
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services.AddControllers()
-            .AddXmlSerializerFormatters(); // Add support for XML format
-    }
-
-    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-    {
-        if (env.IsDevelopment())
-        {
-            app.UseDeveloperExceptionPage();
-        }
-
-        app.UseHttpsRedirection();
-
-        app.UseRouting();
-
-        app.UseAuthorization();
-
-        app.UseEndpoints(endpoints =>
-        {
-            endpoints.MapControllers();
-        });
-    }
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "OpenAI V1");
+    });
 }
+app.UseDeveloperExceptionPage();
+app.UseHttpsRedirection();
+
+app.UseStaticFiles();
+app.UseRouting();
+app.UseCors("CorsPolicy");
+
+
+app.UseAuthorization();
+
+app.MapControllers();
+
+app.Run();
 ```
 
 **Controller Example**
@@ -1066,21 +1087,9 @@ In the above example, the `AddXmlSerializerFormatters` method is used to enable 
 
 To get either JSON or XML responses from your API, you need to set the `Accept` header in your HTTP request to indicate which format you prefer. Here’s how you can do it with different tools:
 
-### Using `curl`
-
-#### To get JSON:
-```sh
-curl -H "Accept: application/json" -X GET http://localhost:5000/api/users/1
-```
-
-#### To get XML:
-```sh
-curl -H "Accept: application/xml" -X GET http://localhost:5000/api/users/1
-```
-
 ### Using Postman
 
-1. Open Postman and enter the URL of your API endpoint (e.g., `http://localhost:5000/api/users/1`).
+1. Open Postman and enter the URL of your API endpoint (e.g., `https://localhost:7051/api/users/1`).
 2. Select the HTTP method (e.g., GET).
 3. Go to the **Headers** tab.
 4. Add a header with the key `Accept` and set the value to `application/json` or `application/xml` depending on the desired format.
@@ -1088,92 +1097,49 @@ curl -H "Accept: application/xml" -X GET http://localhost:5000/api/users/1
 
 ### Using C#
 
-#### To get JSON:
+#### To get JSON or XML:
 ```csharp
 using System;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
+using Newtonsoft.Json.Linq;
 
 class Program
 {
-    static async Task Main()
+    static async Task Main(string[] args)
     {
-        using (var client = new HttpClient())
+        try
         {
-            client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-            var response = await client.GetAsync("http://localhost:5000/api/users/1");
-            var responseBody = await response.Content.ReadAsStringAsync();
-            Console.WriteLine(responseBody);
+            // Step 1: Json Format
+            using (var client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+                var response = await client.GetAsync("https://localhost:7051/api/users/1");
+                var responseBody = await response.Content.ReadAsStringAsync();
+                Console.WriteLine(responseBody);
+            }
+
+            // Step 2: Xml Format
+            using (var client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/xml"));
+                var response = await client.GetAsync("https://localhost:7051/api/users/1");
+                var responseBody = await response.Content.ReadAsStringAsync();
+                Console.WriteLine(responseBody);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("An error occurred: " + ex.Message);
         }
     }
 }
-```
-
-#### To get XML:
-```csharp
-using System;
-using System.Net.Http;
-using System.Threading.Tasks;
-
-class Program
-{
-    static async Task Main()
-    {
-        using (var client = new HttpClient())
-        {
-            client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/xml"));
-            var response = await client.GetAsync("http://localhost:5000/api/users/1");
-            var responseBody = await response.Content.ReadAsStringAsync();
-            Console.WriteLine(responseBody);
-        }
-    }
-}
-```
-
-### Using JavaScript (Fetch API)
-
-#### To get JSON:
-```javascript
-fetch('http://localhost:5000/api/users/1', {
-    method: 'GET',
-    headers: {
-        'Accept': 'application/json'
-    }
-})
-.then(response => response.json())
-.then(data => console.log(data))
-.catch(error => console.error('Error:', error));
-```
-
-#### To get XML:
-```javascript
-fetch('http://localhost:5000/api/users/1', {
-    method: 'GET',
-    headers: {
-        'Accept': 'application/xml'
-    }
-})
-.then(response => response.text())
-.then(data => console.log(data))
-.catch(error => console.error('Error:', error));
-```
-
-### Using Python (Requests Library)
-
-#### To get JSON:
-```python
-import requests
-
-response = requests.get('http://localhost:5000/api/users/1', headers={'Accept': 'application/json'})
-print(response.json())
-```
-
-#### To get XML:
-```python
-import requests
-
-response = requests.get('http://localhost:5000/api/users/1', headers={'Accept': 'application/xml'})
-print(response.text)
 ```
 
 By setting the `Accept` header in your HTTP request to either `application/json` or `application/xml`, you can specify the desired response format from the API. This allows you to easily switch between receiving data in JSON or XML format based on your application's requirements.
