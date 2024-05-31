@@ -338,7 +338,73 @@ In this example:
 
 5.  This example demonstrates how HATEOAS can be implemented to provide clients with dynamic navigation and discoverability within the API.
 
-- Handle versioning gracefully (URI versioning, header versioning, query parameter versioning).
+### Versioning
+
+### Common API Versioning Approaches
+
+#### 1. URI Path Versioning
+**Example:** `https://api.example.com/v1/users`
+
+**Pros:**
+- Easy to understand and implement
+- Clearly indicates version
+
+**Cons:**
+- Clutters URLs with many versions
+- Requires client updates for version changes
+
+#### 2. Query Parameter Versioning
+**Example:** `https://api.example.com/users?version=1`
+
+**Pros:**
+- Simple to add/modify in URLs
+- Doesn’t alter URL structure
+
+**Cons:**
+- Less visible/intuitive
+- Can complicate caching
+
+#### 3. Header Versioning
+**Example:** `GET /users` with header `Accept: application/vnd.example.v1+json`
+
+**Pros:**
+- Clean URL structure
+- Flexible for multiple versions
+
+**Cons:**
+- Less visible/discoverable
+- More complex for clients to set headers
+
+#### 4. Content Negotiation (Media Type Versioning)
+**Example:** `Accept: application/vnd.example.v1+json`
+
+**Pros:**
+- Clean URLs
+- Uses HTTP’s content negotiation
+
+**Cons:**
+- Complex media type management
+- Less intuitive for some developers
+
+#### 5. Semantic Versioning
+**Example:** `https://api.example.com/v1.2.3/users`
+
+**Pros:**
+- Clear change impact
+- Manages and communicates changes effectively
+
+**Cons:**
+- Many active versions
+- Clients handle version ranges
+
+### Choosing the Right Approach
+
+- **Clarity:** URI Path Versioning and Semantic Versioning are straightforward.
+- **Simplicity:** Query Parameter Versioning and URI Path Versioning are easy to implement.
+- **Flexibility:** Header and Content Negotiation offer flexibility for multiple versions.
+- **Visibility:** URI Path Versioning is highly visible.
+
+**Best Practice:** Combine approaches, e.g., URI Path for major versions and Header for minor changes, to balance clarity, flexibility, and simplicity.
 
 Below code demonstrating how to handle versioning gracefully using three common approaches: URI versioning, header versioning, and query parameter versioning. We'll implement these approaches in an ASP.NET Core API controller:
 
@@ -906,6 +972,8 @@ app.Run();
 
 ### Using the API
 
+Here’s how you can do it with different tools:
+
 ### Using Postman
 
 #### Step 1: Login to Get Token
@@ -957,15 +1025,7 @@ By following these steps in Postman, you can authenticate and access protected e
 ### Using C#
 
 ```csharp
-using System;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Net.Http.Json;
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 using Newtonsoft.Json.Linq;
 
 class Program
@@ -974,27 +1034,80 @@ class Program
     {
         try
         {
-            // Step 1: Json Format
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-                var response = await client.GetAsync("https://localhost:7051/api/users/1");
-                var responseBody = await response.Content.ReadAsStringAsync();
-                Console.WriteLine(responseBody);
-            }
+            // Step 1: Authenticate and obtain JWT token
+            var token = await AuthenticateAndGetToken();
 
-            // Step 2: Xml Format
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/xml"));
-                var response = await client.GetAsync("https://localhost:7051/api/users/1");
-                var responseBody = await response.Content.ReadAsStringAsync();
-                Console.WriteLine(responseBody);
-            }
+            // Step 2: Call the protected endpoint with the obtained token
+            await CallProtectedEndpoint(token);
         }
         catch (Exception ex)
         {
             Console.WriteLine("An error occurred: " + ex.Message);
+        }
+    }
+
+    static async Task<string> AuthenticateAndGetToken()
+    {
+        using (var httpClient = new HttpClient())
+        {
+            var model = new { Username = "admin", Password = "admin123" };
+
+            var modelJson = JsonSerializer.Serialize(model);
+            var request = new HttpRequestMessage(HttpMethod.Post, "https://localhost:7051/api/Auth/login");
+
+            var content = new StringContent(modelJson, null, "application/json");
+
+            request.Content = content;
+
+            var response = await httpClient.SendAsync(request);
+
+            response.EnsureSuccessStatusCode();
+
+            var token = await response.Content.ReadAsStringAsync();
+
+            return token;
+        }
+    }
+
+    static async Task CallProtectedEndpoint(string token)
+    {
+        if (string.IsNullOrEmpty(token))
+        {
+            return;
+        }
+
+        var jsonObject = JObject.Parse(token);
+        if (jsonObject == null)
+        {
+            return;
+        }
+
+        string tokenValue = jsonObject["token"].ToString();
+
+        using (var httpClient = new HttpClient())
+        {
+            try
+            {
+                var request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:7051/api/protected");
+
+                request.Headers.Add("Authorization", $"Bearer {tokenValue}");
+
+                var response = await httpClient.SendAsync(request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine("Protected Endpoint Response: " + content);
+                }
+                else
+                {
+                    Console.WriteLine("Failed to access protected endpoint. Status code: " + response.StatusCode);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("An error occurred: " + ex.Message);
+            }
         }
     }
 }
@@ -1225,9 +1338,6 @@ class Program
 
 By setting the `Accept` header in your HTTP request to either `application/json` or `application/xml`, you can specify the desired response format from the API. This allows you to easily switch between receiving data in JSON or XML format based on your application's requirements.
 
-
-### Versioning
-How do you handle versioning in RESTful APIs? What are the different approaches to API versioning, and what are their pros and cons?
 
 ### Pagination and Filtering
 How do you implement pagination and filtering in RESTful APIs? Why is it important, and what are some best practices?
