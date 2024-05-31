@@ -25,10 +25,10 @@
 
 ---
 
-## 🚀  What is a RESTful API?
+## What is a RESTful API?
 A RESTful API adheres to the principles of REST (Representational State Transfer), using standard HTTP methods and URL structures to provide access to resources.
 
-## 🚀  Main Principles of REST
+## Main Principles of REST
 - **Statelessness**: Each request from a client to a server must contain all the information needed to understand and process the request.
 - **Client-Server Architecture**: Separation of client and server concerns.
 - **Uniform Interface**: Standard methods (GET, POST, PUT, DELETE) and URIs for resource access.
