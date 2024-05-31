@@ -240,7 +240,8 @@ Endpoints are specific URLs that clients interact with to access or manipulate r
 
  
 
-# Design and Best Practices : 1. Use nouns for resources (`/users`, `/products`).
+# Design and Best Practices : 
+## 1. Use nouns for resources (`/users`, `/products`).
 
 ```csharp
 // ASP.NET Core example
@@ -277,7 +278,8 @@ namespace MyAPI.Controllers
 }
 ```
 
-# Design and Best Practices : 2. Use plurals for collections (`/users` vs `/user`).
+# Design and Best Practices : 
+## 2. Use plurals for collections (`/users` vs `/user`).
 
 ```csharp
 // ASP.NET Core example
@@ -314,7 +316,8 @@ namespace MyAPI.Controllers
 }
 ```
 
-# Design and Best Practices : 3. Use hierarchical structure for nested resources (`/users/1/orders`).
+# Design and Best Practices : 
+## 3. Use hierarchical structure for nested resources (`/users/1/orders`).
 
 ```csharp
 using Microsoft.AspNetCore.Mvc;
@@ -378,7 +381,8 @@ In this example,
 4.  This follows the hierarchical structure where orders is nested under users.
 
 
-# Design and Best Practices : 4. Implement HATEOAS
+# Design and Best Practices : 
+## 4. Implement HATEOAS
 
 Implementing HATEOAS (Hypermedia As The Engine Of Application State) involves including hypermedia links in API responses to guide clients on how to navigate the API and discover available actions or resources dynamically. 
 
