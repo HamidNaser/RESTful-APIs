@@ -7,28 +7,23 @@
 4. [Endpoints](#endpoints)
 5. [Design and Best Practices](#design-and-best-practices)
 6. [Error Handling and Status Codes](#error-handling-and-status-codes)
+7. [API Gateway Example with Ocelot](#api-gateway-example-with-ocelot)
+8. [Authentication and Authorization](#authentication-and-authorization)
+9. [Data Formats](#data-formats)
+10. [Versioning](#versioning)
+11. [Pagination and Filtering](#pagination-and-filtering)
+12. [Caching](#caching)
+13. [Cross-Origin Resource Sharing (CORS)](#cross-origin-resource-sharing-cors)
+14. [Testing](#testing)
+15. [Microservices Architecture](#microservices-architecture)
 7. [Tools and Technologies](#tools-and-technologies)
 8. [Advanced Topics](#advanced-topics)
-9. [API Gateway Example with Ocelot](#api-gateway-example-with-ocelot)
-10. [Authentication and Authorization](#authentication-and-authorization)
-11. [Data Formats](#data-formats)
-12. [Versioning](#versioning)
-13. [Pagination and Filtering](#pagination-and-filtering)
-14. [Caching](#caching)
-15. [Cross-Origin Resource Sharing (CORS)](#cross-origin-resource-sharing-cors)
-16. [Testing](#testing)
-17. [Performance Optimization](#performance-optimization)
-18. [Documentation](#documentation)
-19. [Microservices Architecture](#microservices-architecture)
-20. [Real-world Scenarios](#real-world-scenarios)
-21. [Industry Trends](#industry-trends)
 
----
 
 # What is a RESTful API?
 A RESTful API adheres to the principles of REST (Representational State Transfer), using standard HTTP methods and URL structures to provide access to resources.
 
-# Main Principles of REST
+# Main Principles of REST 
 - **Statelessness**: Each request from a client to a server must contain all the information needed to understand and process the request.
 - **Client-Server Architecture**: Separation of client and server concerns.
 - **Uniform Interface**: Standard methods (GET, POST, PUT, DELETE) and URIs for resource access.
@@ -70,7 +65,7 @@ A RESTful API adheres to the principles of REST (Representational State Transfer
 
 By adhering to these main principles of REST, developers can design robust, scalable, and maintainable APIs that promote interoperability, flexibility, and performance.
 
-<h2 id="common-http-methods" style="color: blue;">Common HTTP Methods</h2>
+# Common HTTP Methods
 - **GET**: Retrieve a resource or a list of resources.
 - **POST**: Create a new resource.
 - **PUT**: Update an existing resource.
@@ -499,250 +494,6 @@ In this example:
 
 5.  This example demonstrates how HATEOAS can be implemented to provide clients with dynamic navigation and discoverability within the API.
 
-# Versioning
-
-### Common API Versioning Approaches
-
-#### 1. URI Path Versioning
-**Example:** `https://api.example.com/v1/users`
-
-**Pros:**
-- Easy to understand and implement
-- Clearly indicates version
-
-**Cons:**
-- Clutters URLs with many versions
-- Requires client updates for version changes
-
-#### 2. Query Parameter Versioning
-**Example:** `https://api.example.com/users?version=1`
-
-**Pros:**
-- Simple to add/modify in URLs
-- Doesn’t alter URL structure
-
-**Cons:**
-- Less visible/intuitive
-- Can complicate caching
-
-#### 3. Header Versioning
-**Example:** `GET /users` with header `Accept: application/vnd.example.v1+json`
-
-**Pros:**
-- Clean URL structure
-- Flexible for multiple versions
-
-**Cons:**
-- Less visible/discoverable
-- More complex for clients to set headers
-
-#### 4. Content Negotiation (Media Type Versioning)
-**Example:** `Accept: application/vnd.example.v1+json`
-
-**Pros:**
-- Clean URLs
-- Uses HTTP’s content negotiation
-
-**Cons:**
-- Complex media type management
-- Less intuitive for some developers
-
-#### 5. Semantic Versioning
-**Example:** `https://api.example.com/v1.2.3/users`
-
-**Pros:**
-- Clear change impact
-- Manages and communicates changes effectively
-
-**Cons:**
-- Many active versions
-- Clients handle version ranges
-
-### Choosing the Right Approach
-
-- **Clarity:** URI Path Versioning and Semantic Versioning are straightforward.
-- **Simplicity:** Query Parameter Versioning and URI Path Versioning are easy to implement.
-- **Flexibility:** Header and Content Negotiation offer flexibility for multiple versions.
-- **Visibility:** URI Path Versioning is highly visible.
-
-**Best Practice:** Combine approaches, e.g., URI Path for major versions and Header for minor changes, to balance clarity, flexibility, and simplicity.
-
-Below code demonstrating how to handle versioning gracefully using three common approaches: URI versioning, header versioning, and query parameter versioning. We'll implement these approaches in an ASP.NET Core API controller:
-
-```csharp
-using Microsoft.AspNetCore.Mvc;
-using System;
-
-namespace MyAPI.Controllers
-{
-    [ApiController]
-    [Route("api/v{version:apiVersion}/[controller]")]
-    [ApiVersion("1.0")] // Default API version
-    [ApiVersion("2.0")]
-    public class ProductsController : ControllerBase
-    {
-        // URI versioning
-        [HttpGet("{id}")]
-        [MapToApiVersion("1.0")]
-        public IActionResult GetProductV1(int id)
-        {
-            return Ok(new { Id = id, Name = "Product V1" });
-        }
-
-        [HttpGet("{id}")]
-        [MapToApiVersion("2.0")]
-        public IActionResult GetProductV2(int id)
-        {
-            return Ok(new { Id = id, Name = "Product V2" });
-        }
-
-        // Header versioning
-        [HttpGet("{id}")]
-        public IActionResult GetProductHeaderVersion(int id)
-        {
-            var apiVersion = HttpContext.GetRequestedApiVersion().ToString();
-            if (apiVersion == "1.0")
-            {
-                return Ok(new { Id = id, Name = "Product V1" });
-            }
-            else if (apiVersion == "2.0")
-            {
-                return Ok(new { Id = id, Name = "Product V2" });
-            }
-            else
-            {
-                return BadRequest("Invalid API version");
-            }
-        }
-
-        // Query parameter versioning
-        [HttpGet("{id}")]
-        public IActionResult GetProductQueryVersion(int id, ApiVersion version)
-        {
-            if (version.MajorVersion == 1)
-            {
-                return Ok(new { Id = id, Name = "Product V1" });
-            }
-            else if (version.MajorVersion == 2)
-            {
-                return Ok(new { Id = id, Name = "Product V2" });
-            }
-            else
-            {
-                return BadRequest("Invalid API version");
-            }
-        }
-    }
-}
-```
-
-In this example:
-
-1.  URI versioning: Different versions of the `GetProduct` endpoint are mapped to different HTTP methods based on the requested API version.
-
-2.  Header versioning: The API version is extracted from the request headers, and the appropriate logic is executed based on the version.
-
-3.  Query parameter versioning: The API version is extracted from the query parameters, and the appropriate logic is executed based on the version.
-
-### Backward Compatibility
-Ensure backward compatibility and provide clear migration paths for clients using older versions.
-
-```csharp
-using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-
-namespace MyAPI.Controllers
-{
-    [ApiController]
-    [Route("api/v{version:apiVersion}/[controller]")]
-    [ApiVersion("1.0")]
-    [ApiVersion("2.0")]
-    public class ProductsController : ControllerBase
-    {
-        // Product data for demonstration
-        private static Dictionary<int, string> _productsV1 = new Dictionary<int, string>
-        {
-            { 1, "Product A" },
-            { 2, "Product B" },
-            { 3, "Product C" }
-        };
-
-        private static Dictionary<int, string> _productsV2 = new Dictionary<int, string>
-        {
-            { 1, "Product X" },
-            { 2, "Product Y" },
-            { 3, "Product Z" }
-        };
-
-        // Endpoint for getting product details
-        [HttpGet("{id}")]
-        public IActionResult GetProduct(int id, ApiVersion version)
-        {
-            // Check if the requested version is supported
-            if (version.MajorVersion == 1)
-            {
-                // Check if the product exists in version 1 data
-                if (_productsV1.ContainsKey(id))
-                {
-                    return Ok(new { Id = id, Name = _productsV1[id] });
-                }
-                else
-                {
-                    return NotFound();
-                }
-            }
-            else if (version.MajorVersion == 2)
-            {
-                // Check if the product exists in version 2 data
-                if (_productsV2.ContainsKey(id))
-                {
-                    return Ok(new { Id = id, Name = _productsV2[id] });
-                }
-                else
-                {
-                    return NotFound();
-                }
-            }
-            else
-            {
-                // Handle unsupported API version
-                return BadRequest("Unsupported API version");
-            }
-        }
-
-        // Endpoint for providing migration path guidance
-        [HttpGet("migration")]
-        public IActionResult MigrationGuide(ApiVersion version)
-        {
-            if (version.MajorVersion == 1)
-            {
-                // Provide guidance for migrating to version 2
-                return Ok("Please migrate to API version 2 for improved features and performance.");
-            }
-            else if (version.MajorVersion == 2)
-            {
-                // Inform clients that they are using the latest version
-                return Ok("You are currently using the latest version of the API (version 2).");
-            }
-            else
-            {
-                // Handle unsupported API version
-                return BadRequest("Unsupported API version");
-            }
-        }
-    }
-}
-```
-
-In this example:
-
-1.  The `GetProduct` endpoint retrieves product details based on the requested API version. It checks if the requested version is supported and then serves the appropriate data accordingly.
-
-2.  The `MigrationGuide` endpoint provides guidance for clients using older versions, directing them to migrate to the latest version for improved features and performance.
-
-By providing clear migration paths and handling backward compatibility gracefully, you ensure that clients using older versions of your API can smoothly transition to newer versions without encountering disruptions or errors.
-
 # Error Handling and Status Codes
 - **200 OK**: The request was successful.
 - **201 Created**: A resource was successfully created.
@@ -752,14 +503,6 @@ By providing clear migration paths and handling backward compatibility gracefull
 - **403 Forbidden**: The server understood the request but refuses to authorize it.
 - **404 Not Found**: The requested resource could not be found.
 - **500 Internal Server Error**: An error occurred on the server.
-
-# Advanced Topics
-- **Asynchronous Processing**: Use background processing for long-running tasks, implement asynchronous endpoints using async/await in C#, and use message queues (e.g., RabbitMQ, AWS SQS) for task delegation.
-- **Filtering and Sorting**: Use query parameters to specify filtering and sorting criteria.
-- **Pagination**: Use query parameters such as `limit` and `offset` or `page` and `size`.
-- **Idempotency**: Ensure that making the same request multiple times has the same effect as making it once.
-- **Scalability**: Use statelessness, caching, load balancing, and microservices to scale APIs.
-- **Security**: Use HTTPS, proper authentication and authorization, validate all input data, use security headers, and implement rate limiting.
 
 # API Gateway Example with Ocelot
 
@@ -1494,6 +1237,250 @@ class Program
 
 By setting the `Accept` header in your HTTP request to either `application/json` or `application/xml`, you can specify the desired response format from the API. This allows you to easily switch between receiving data in JSON or XML format based on your application's requirements.
 
+# Versioning
+
+### Common API Versioning Approaches
+
+#### 1. URI Path Versioning
+**Example:** `https://api.example.com/v1/users`
+
+**Pros:**
+- Easy to understand and implement
+- Clearly indicates version
+
+**Cons:**
+- Clutters URLs with many versions
+- Requires client updates for version changes
+
+#### 2. Query Parameter Versioning
+**Example:** `https://api.example.com/users?version=1`
+
+**Pros:**
+- Simple to add/modify in URLs
+- Doesn’t alter URL structure
+
+**Cons:**
+- Less visible/intuitive
+- Can complicate caching
+
+#### 3. Header Versioning
+**Example:** `GET /users` with header `Accept: application/vnd.example.v1+json`
+
+**Pros:**
+- Clean URL structure
+- Flexible for multiple versions
+
+**Cons:**
+- Less visible/discoverable
+- More complex for clients to set headers
+
+#### 4. Content Negotiation (Media Type Versioning)
+**Example:** `Accept: application/vnd.example.v1+json`
+
+**Pros:**
+- Clean URLs
+- Uses HTTP’s content negotiation
+
+**Cons:**
+- Complex media type management
+- Less intuitive for some developers
+
+#### 5. Semantic Versioning
+**Example:** `https://api.example.com/v1.2.3/users`
+
+**Pros:**
+- Clear change impact
+- Manages and communicates changes effectively
+
+**Cons:**
+- Many active versions
+- Clients handle version ranges
+
+### Choosing the Right Approach
+
+- **Clarity:** URI Path Versioning and Semantic Versioning are straightforward.
+- **Simplicity:** Query Parameter Versioning and URI Path Versioning are easy to implement.
+- **Flexibility:** Header and Content Negotiation offer flexibility for multiple versions.
+- **Visibility:** URI Path Versioning is highly visible.
+
+**Best Practice:** Combine approaches, e.g., URI Path for major versions and Header for minor changes, to balance clarity, flexibility, and simplicity.
+
+Below code demonstrating how to handle versioning gracefully using three common approaches: URI versioning, header versioning, and query parameter versioning. We'll implement these approaches in an ASP.NET Core API controller:
+
+```csharp
+using Microsoft.AspNetCore.Mvc;
+using System;
+
+namespace MyAPI.Controllers
+{
+    [ApiController]
+    [Route("api/v{version:apiVersion}/[controller]")]
+    [ApiVersion("1.0")] // Default API version
+    [ApiVersion("2.0")]
+    public class ProductsController : ControllerBase
+    {
+        // URI versioning
+        [HttpGet("{id}")]
+        [MapToApiVersion("1.0")]
+        public IActionResult GetProductV1(int id)
+        {
+            return Ok(new { Id = id, Name = "Product V1" });
+        }
+
+        [HttpGet("{id}")]
+        [MapToApiVersion("2.0")]
+        public IActionResult GetProductV2(int id)
+        {
+            return Ok(new { Id = id, Name = "Product V2" });
+        }
+
+        // Header versioning
+        [HttpGet("{id}")]
+        public IActionResult GetProductHeaderVersion(int id)
+        {
+            var apiVersion = HttpContext.GetRequestedApiVersion().ToString();
+            if (apiVersion == "1.0")
+            {
+                return Ok(new { Id = id, Name = "Product V1" });
+            }
+            else if (apiVersion == "2.0")
+            {
+                return Ok(new { Id = id, Name = "Product V2" });
+            }
+            else
+            {
+                return BadRequest("Invalid API version");
+            }
+        }
+
+        // Query parameter versioning
+        [HttpGet("{id}")]
+        public IActionResult GetProductQueryVersion(int id, ApiVersion version)
+        {
+            if (version.MajorVersion == 1)
+            {
+                return Ok(new { Id = id, Name = "Product V1" });
+            }
+            else if (version.MajorVersion == 2)
+            {
+                return Ok(new { Id = id, Name = "Product V2" });
+            }
+            else
+            {
+                return BadRequest("Invalid API version");
+            }
+        }
+    }
+}
+```
+
+In this example:
+
+1.  URI versioning: Different versions of the `GetProduct` endpoint are mapped to different HTTP methods based on the requested API version.
+
+2.  Header versioning: The API version is extracted from the request headers, and the appropriate logic is executed based on the version.
+
+3.  Query parameter versioning: The API version is extracted from the query parameters, and the appropriate logic is executed based on the version.
+
+### Backward Compatibility
+Ensure backward compatibility and provide clear migration paths for clients using older versions.
+
+```csharp
+using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+
+namespace MyAPI.Controllers
+{
+    [ApiController]
+    [Route("api/v{version:apiVersion}/[controller]")]
+    [ApiVersion("1.0")]
+    [ApiVersion("2.0")]
+    public class ProductsController : ControllerBase
+    {
+        // Product data for demonstration
+        private static Dictionary<int, string> _productsV1 = new Dictionary<int, string>
+        {
+            { 1, "Product A" },
+            { 2, "Product B" },
+            { 3, "Product C" }
+        };
+
+        private static Dictionary<int, string> _productsV2 = new Dictionary<int, string>
+        {
+            { 1, "Product X" },
+            { 2, "Product Y" },
+            { 3, "Product Z" }
+        };
+
+        // Endpoint for getting product details
+        [HttpGet("{id}")]
+        public IActionResult GetProduct(int id, ApiVersion version)
+        {
+            // Check if the requested version is supported
+            if (version.MajorVersion == 1)
+            {
+                // Check if the product exists in version 1 data
+                if (_productsV1.ContainsKey(id))
+                {
+                    return Ok(new { Id = id, Name = _productsV1[id] });
+                }
+                else
+                {
+                    return NotFound();
+                }
+            }
+            else if (version.MajorVersion == 2)
+            {
+                // Check if the product exists in version 2 data
+                if (_productsV2.ContainsKey(id))
+                {
+                    return Ok(new { Id = id, Name = _productsV2[id] });
+                }
+                else
+                {
+                    return NotFound();
+                }
+            }
+            else
+            {
+                // Handle unsupported API version
+                return BadRequest("Unsupported API version");
+            }
+        }
+
+        // Endpoint for providing migration path guidance
+        [HttpGet("migration")]
+        public IActionResult MigrationGuide(ApiVersion version)
+        {
+            if (version.MajorVersion == 1)
+            {
+                // Provide guidance for migrating to version 2
+                return Ok("Please migrate to API version 2 for improved features and performance.");
+            }
+            else if (version.MajorVersion == 2)
+            {
+                // Inform clients that they are using the latest version
+                return Ok("You are currently using the latest version of the API (version 2).");
+            }
+            else
+            {
+                // Handle unsupported API version
+                return BadRequest("Unsupported API version");
+            }
+        }
+    }
+}
+```
+
+In this example:
+
+1.  The `GetProduct` endpoint retrieves product details based on the requested API version. It checks if the requested version is supported and then serves the appropriate data accordingly.
+
+2.  The `MigrationGuide` endpoint provides guidance for clients using older versions, directing them to migrate to the latest version for improved features and performance.
+
+By providing clear migration paths and handling backward compatibility gracefully, you ensure that clients using older versions of your API can smoothly transition to newer versions without encountering disruptions or errors.
+
 
 # Pagination and Filtering
 How do you implement pagination and filtering in RESTful APIs? Why is it important, and what are some best practices?
@@ -1525,3 +1512,12 @@ Stay updated on current trends and advancements in RESTful API development, such
 # Tools and Technologies
 - **Postman**: A popular tool for testing and documenting APIs.
 - **Swagger/OpenAPI**: For documenting and testing APIs.
+
+
+# Advanced Topics
+- **Asynchronous Processing**: Use background processing for long-running tasks, implement asynchronous endpoints using async/await in C#, and use message queues (e.g., RabbitMQ, AWS SQS) for task delegation.
+- **Filtering and Sorting**: Use query parameters to specify filtering and sorting criteria.
+- **Pagination**: Use query parameters such as `limit` and `offset` or `page` and `size`.
+- **Idempotency**: Ensure that making the same request multiple times has the same effect as making it once.
+- **Scalability**: Use statelessness, caching, load balancing, and microservices to scale APIs.
+- **Security**: Use HTTPS, proper authentication and authorization, validate all input data, use security headers, and implement rate limiting.
