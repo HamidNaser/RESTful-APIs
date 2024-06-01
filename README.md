@@ -1,6 +1,6 @@
 
 # Table of Contents 
-- [What is a RESTful API?](#what-is-a-restful-api)
+- [What is a RESTful API?](#-what-is-a-restful-api)
 - [Features](#-features) 
 
 ## 🚀 What is a RESTful API? 
