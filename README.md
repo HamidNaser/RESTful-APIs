@@ -275,7 +275,7 @@ namespace MyAPI.Controllers
 }
 ```
 
-### ✅ 2. Use plurals for collections (`/users` vs `/user`).
+✅ 2. Use plurals for collections (`/users` vs `/user`).
 
 ```csharp
 // ASP.NET Core example
@@ -312,7 +312,7 @@ namespace MyAPI.Controllers
 }
 ```
 
-### ✅ 3. Use hierarchical structure for nested resources (`/users/1/orders`).
+✅ 3. Use hierarchical structure for nested resources (`/users/1/orders`).
 
 ```csharp
 using Microsoft.AspNetCore.Mvc;
@@ -376,7 +376,7 @@ In this example,
 4.  This follows the hierarchical structure where orders is nested under users.
 
 
-### ✅ 4. Implement HATEOAS
+✅ 4. Implement HATEOAS
 
 Implementing HATEOAS (Hypermedia As The Engine Of Application State) involves including hypermedia links in API responses to guide clients on how to navigate the API and discover available actions or resources dynamically. 
 
@@ -509,7 +509,7 @@ Using an API gateway helps manage, secure, and monitor traffic. Here’s an exam
 
 ### Step-by-Step Guide
 
-1. **Create an ASP.NET Core Web Application**:
+✅ 1. **Create an ASP.NET Core Web Application**:
    ```bash
    dotnet new webapi -n ApiGateway
    cd ApiGateway
@@ -517,7 +517,7 @@ Using an API gateway helps manage, secure, and monitor traffic. Here’s an exam
    dotnet add package Microsoft.Extensions.Configuration.Json
    ```
 
-2. **Configure Ocelot**:
+✅ 2. **Configure Ocelot**:
    - Create `ocelot.json` in the root directory:
      ```json
      {
@@ -538,7 +538,7 @@ Using an API gateway helps manage, secure, and monitor traffic. Here’s an exam
      }
      ```
 
-3. **Modify `Startup.cs`**:
+✅ 3. **Modify `Startup.cs`**:
    ```csharp
     using Ocelot.DependencyInjection;
     using Ocelot.Middleware;
@@ -576,7 +576,7 @@ Using an API gateway helps manage, secure, and monitor traffic. Here’s an exam
     }   
    ```
 
-4. **Modify `Program.cs`**:
+✅ 4. **Modify `Program.cs`**:
    ```csharp
     public class Program
     {
@@ -599,13 +599,13 @@ Using an API gateway helps manage, secure, and monitor traffic. Here’s an exam
     }
    ```
 
-**Create Backend Services**:
+✅ **Create Backend Services**:
    - Run the API ApiBestPractices on port 7051
 
-**Run the ApiGateway on port 5000 and Backend Services**:
+✅ **Run the ApiGateway on port 5000 and Backend Services**:
    - Start the API Gateway project and the backend services.
 
-**Test the API Gateway Using Postman**:
+✅ **Test the API Gateway Using Postman**:
 
 1. **Open Postman**: If you don't have Postman installed, you can download it from the [Postman website](https://www.postman.com/downloads/).
 
