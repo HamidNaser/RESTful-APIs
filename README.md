@@ -2129,16 +2129,140 @@ app.MapControllers();
 app.Run();
 ```
 
+- **Asynchronous Processing**: Asynchronous processing is a powerful technique for improving the responsiveness and scalability of RESTful APIs. Here's how you can implement asynchronous processing in C# using async/await and message queues:
+
+✅ Implementing Asynchronous Processing with Async/Await in C#:
+
+1. **Background Processing with Async/Await**:
+   - Implement long-running tasks or operations asynchronously using the `async` and `await` keywords in C#. This allows the server to handle other requests while waiting for the asynchronous operation to complete.
+   - Example:
+     ```csharp
+     [HttpPost]
+     public async Task<ActionResult> ProcessDataAsync(DataModel data)
+     {
+         // Perform long-running operation asynchronously
+         await Task.Delay(TimeSpan.FromSeconds(10)); // Simulating a long-running operation
+         
+         // Return response
+         return Ok("Data processed successfully");
+     }
+     ```
+
+2. **Async Endpoints**:
+   - Make use of asynchronous endpoints to handle requests that may involve I/O-bound operations (e.g., database queries, HTTP requests) or CPU-bound operations (e.g., computation).
+   - Example:
+     ```csharp
+     [HttpGet]
+     public async Task<ActionResult<IEnumerable<DataModel>>> GetDataAsync()
+     {
+         // Perform database query asynchronously
+         var data = await _dataRepository.GetDataAsync();
+         
+         // Return response
+         return Ok(data);
+     }
+     ```
+
+✅ Using Message Queues for Task Delegation:
+
+1. **Integration with Message Queues**:
+   - Integrate your RESTful API with a message queue system (e.g., RabbitMQ, AWS SQS, Azure Service Bus) to delegate long-running or background tasks to worker processes asynchronously.
+   - Example:
+     ```csharp
+     [HttpPost]
+     public async Task<ActionResult> ProcessDataAsync(DataModel data)
+     {
+         // Publish message to message queue for asynchronous processing
+         await _messageQueue.PublishAsync(data);
+         
+         // Return response
+         return Accepted(); // or any appropriate response code
+     }
+     ```
+
+2. **Worker Processes**:
+   - Set up worker processes or background services that consume messages from the message queue and perform the necessary processing asynchronously.
+   - Example:
+     ```csharp
+     public class MessageQueueWorker
+     {
+         private readonly IMessageQueue _messageQueue;
+
+         public MessageQueueWorker(IMessageQueue messageQueue)
+         {
+             _messageQueue = messageQueue;
+         }
+
+         public async Task StartAsync(CancellationToken cancellationToken)
+         {
+             // Start listening for messages from the message queue
+             await _messageQueue.ListenAsync(ProcessMessage, cancellationToken);
+         }
+
+         private async Task ProcessMessage(Message message)
+         {
+             // Process message asynchronously (e.g., perform background task)
+             await Task.Delay(TimeSpan.FromSeconds(10)); // Simulating processing
+         }
+     }
+     ```
+
+
+### 🚀 Filtering and Sorting
+Implementing filtering and sorting using query parameters is a common practice in RESTful APIs to allow clients to customize the response data according to their requirements. Here's how you can implement filtering and sorting using query parameters in C#:
+
+### Filtering and Sorting in C# RESTful API:
+
+1. **Filtering**:
+   - Define query parameters to specify filtering criteria based on different fields or attributes of the resource.
+   - Apply filtering logic to the dataset based on the provided query parameters.
+   - Example:
+     ```csharp
+     [HttpGet]
+     public ActionResult<IEnumerable<Product>> GetProducts([FromQuery] string nameFilter)
+     {
+         // Filter products based on name
+         var filteredProducts = _productRepository.GetProducts()
+             .Where(p => string.IsNullOrEmpty(nameFilter) || p.Name.Contains(nameFilter))
+             .ToList();
+         
+         return Ok(filteredProducts);
+     }
+     ```
+
+2. **Sorting**:
+   - Define query parameters to specify sorting criteria (e.g., field name and sort direction).
+   - Apply sorting logic to the dataset based on the provided query parameters.
+   - Example:
+     ```csharp
+     [HttpGet]
+     public ActionResult<IEnumerable<Product>> GetProducts([FromQuery] string sortBy, [FromQuery] string sortOrder)
+     {
+         // Sort products based on the specified field and sort order
+         var sortedProducts = _productRepository.GetProducts();
+         
+         if (!string.IsNullOrEmpty(sortBy))
+         {
+             sortedProducts = sortOrder.ToLower() == "desc"
+                 ? sortedProducts.OrderByDescending(p => GetPropertyValue(p, sortBy))
+                 : sortedProducts.OrderBy(p => GetPropertyValue(p, sortBy));
+         }
+         
+         return Ok(sortedProducts.ToList());
+     }
+
+     private object GetPropertyValue(object obj, string propertyName)
+     {
+         return obj.GetType().GetProperty(propertyName)?.GetValue(obj, null);
+     }
+     ```
+
+### Usage:
+
+- To filter products by name, the client can send a request like: `GET /api/products?nameFilter=keyword`.
+- To sort products by a specific field (e.g., price) in ascending order, the client can send a request like: `GET /api/products?sortBy=price&sortOrder=asc`.
+
 
 ### 🚀 Tools and Technologies
 - **Postman**: A popular tool for testing and documenting APIs.
 - **Swagger/OpenAPI**: For documenting and testing APIs.
-
-
-### 🚀 Advanced Topics
-- **Asynchronous Processing**: Use background processing for long-running tasks, implement asynchronous endpoints using async/await in C#, and use message queues (e.g., RabbitMQ, AWS SQS) for task delegation.
-- **Filtering and Sorting**: Use query parameters to specify filtering and sorting criteria.
-- **Pagination**: Use query parameters such as `limit` and `offset` or `page` and `size`.
-- **Idempotency**: Ensure that making the same request multiple times has the same effect as making it once.
-- **Scalability**: Use statelessness, caching, load balancing, and microservices to scale APIs.
-- **Security**: Use HTTPS, proper authentication and authorization, validate all input data, use security headers, and implement rate limiting.
