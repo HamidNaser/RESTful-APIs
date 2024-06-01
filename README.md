@@ -238,7 +238,7 @@ Endpoints are specific URLs that clients interact with to access or manipulate r
 
 ### 🚀 Design and Best Practices
 
-### ✅ 1. Use nouns for resources (`/users`, `/products`).
+✅ 1. Use nouns for resources (`/users`, `/products`).
 
 ```csharp
 // ASP.NET Core example
