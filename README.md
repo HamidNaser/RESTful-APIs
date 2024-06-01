@@ -21,10 +21,10 @@
 8. [Advanced Topics](#-advanced-topics)
 
 
-# 🚀 What is a RESTful API?
+### 🚀 What is a RESTful API?
 A RESTful API adheres to the principles of REST (Representational State Transfer), using standard HTTP methods and URL structures to provide access to resources.
 
-## 🚀 Main Principles of REST
+### 🚀 Main Principles of REST
 - **Statelessness**: Each request from a client to a server must contain all the information needed to understand and process the request.
 - **Client-Server Architecture**: Separation of client and server concerns.
 - **Uniform Interface**: Standard methods (GET, POST, PUT, DELETE) and URIs for resource access.
@@ -275,7 +275,6 @@ namespace MyAPI.Controllers
 }
 ```
 
-# Design and Best Practices : 
 ## ✅ 2. Use plurals for collections (`/users` vs `/user`).
 
 ```csharp
@@ -313,7 +312,6 @@ namespace MyAPI.Controllers
 }
 ```
 
-# Design and Best Practices : 
 ## ✅ 3. Use hierarchical structure for nested resources (`/users/1/orders`).
 
 ```csharp
@@ -378,7 +376,6 @@ In this example,
 4.  This follows the hierarchical structure where orders is nested under users.
 
 
-# Design and Best Practices : 
 ## ✅ 4. Implement HATEOAS
 
 Implementing HATEOAS (Hypermedia As The Engine Of Application State) involves including hypermedia links in API responses to guide clients on how to navigate the API and discover available actions or resources dynamically. 
