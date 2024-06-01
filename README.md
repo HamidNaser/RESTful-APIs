@@ -1776,35 +1776,49 @@ Cross-Origin Resource Sharing (CORS) is a security mechanism that controls which
 To handle CORS in RESTful APIs, you need to configure the server to include appropriate CORS headers in its responses. This allows browsers to enforce access policies based on the client's origin.
 
 #### Implementation:
-In an ASP.NET Core API, you can configure CORS in the `Startup.cs` file as follows:
+In an ASP.NET Core API, you can configure CORS in the `Program.cs` file as follows:
 
 ```csharp
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Versioning;
+using Microsoft.OpenApi.Models;
 
-public class Startup
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+builder.Services.AddControllers();
+
+// Add Swagger
+builder.Services.AddSwaggerGen(c =>
 {
-    public void ConfigureServices(IServiceCollection services)
-    {
-        // Add CORS services
-        services.AddCors();
-        
-        // Other service configurations...
-    }
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API V1", Version = "v1" });
 
-    public void Configure(IApplicationBuilder app)
+    var xmlFile = $"{typeof(Program).Assembly.GetName().Name}.xml";
+    var xmlPath = System.IO.Path.Combine(System.AppContext.BaseDirectory, xmlFile);
+    c.IncludeXmlComments(xmlPath);
+});
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
     {
-        // Enable CORS
-        app.UseCors(builder =>
-            builder
-                .AllowAnyOrigin() // Allow requests from any origin
-                .AllowAnyMethod() // Allow any HTTP method
-                .AllowAnyHeader() // Allow any HTTP headers
-        );
-        
-        // Other app configurations...
-    }
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+    });
 }
+
+app.UseHttpsRedirection();
+app.UseAuthorization();
+app.MapControllers();
+app.Run();
 ```
 
 ### Security Implications:
@@ -1827,6 +1841,160 @@ Why is documentation important for RESTful APIs? What are some popular documenta
 
 ### 🚀 Microservices Architecture
 How does RESTful API development fit into a microservices architecture? What are the advantages and challenges of using RESTful APIs in a microservices-based system?
+
+### 🚀 Idempotency
+Ensure that making the same request multiple times has the same effect as making it once.
+
+To implement idempotency in RESTful APIs, you need to design your API endpoints and operations in such a way that repeating the same request multiple times has the same effect as making it once. Here are some strategies to implement idempotency:
+
+1. **Use Idempotent HTTP Methods**: Use HTTP methods that are inherently idempotent, such as GET, PUT, and DELETE, for operations that should be idempotent.
+
+2. **Design Idempotent Endpoints**: Design API endpoints to be idempotent by ensuring that repeating the same request to the same endpoint with the same parameters or payload has the same effect.
+
+3. **Use Idempotent Keys or Request Identifiers**: For operations that involve state changes or data modification, use idempotent keys or request identifiers to distinguish between duplicate requests. Include a unique identifier (e.g., UUID) in the request payload or headers to detect and handle duplicate requests.
+
+4. **Handle Duplicate Requests Gracefully**: Implement logic on the server side to detect and handle duplicate requests gracefully. Check if the request has already been processed based on the idempotent key or identifier, and if so, return the same response as the original request.
+
+5. **Use Conditional Operations**: For operations that involve updates or modifications, use conditional operations like conditional PUT or conditional DELETE, where the operation is only performed if certain conditions are met (e.g., resource has not been modified since last retrieval).
+
+6. **Use Idempotent Responses**: Design API responses to be idempotent by ensuring that they provide the same result regardless of the number of times the request is processed. Use consistent response codes and messages to indicate the outcome of the operation.
+
+### Implementing idempotency in a RESTful API using C# and ASP.NET Core:
+
+✅ ProductsController.cs
+
+```csharp
+using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+public class Product
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public decimal Price { get; set; }
+    // Other properties...
+
+    public Product(int id, string name, decimal price)
+    {
+        Id = id;
+        Name = name;
+        Price = price;
+    }
+}
+
+[ApiController]
+[Route("api/products")]
+public class ProductsController : ControllerBase
+{
+    private readonly Dictionary<int, Product> _products = new Dictionary<int, Product>();
+
+    public ProductsController()
+    {
+        // Initialize _products with sample data
+        _products = new Dictionary<int, Product>
+        {
+            { 1, new Product(1, "Product A", 10.99m) },
+            { 2, new Product(2, "Product B", 20.49m) },
+            { 3, new Product(3, "Product C", 15.99m) },
+        };
+    }
+    [HttpGet("{id}")]
+    public ActionResult<Product> GetProduct(int id)
+    {
+        if (_products.ContainsKey(id))
+        {
+            return Ok(_products[id]);
+        }
+        else
+        {
+            return NotFound();
+        }
+    }
+
+    [HttpPost]
+    public ActionResult<Product> CreateOrUpdateProduct(Product product)
+    {
+        if (_products.ContainsKey(product.Id))
+        {
+            _products[product.Id] = product;
+            return Ok(product);
+        }
+        else
+        {
+            _products.Add(product.Id, product);
+            return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, product);
+        }
+    }
+
+    [HttpDelete("{id}")]
+    public ActionResult DeleteProduct(int id)
+    {
+        if (_products.ContainsKey(id))
+        {
+            _products.Remove(id);
+            return NoContent();
+        }
+        else
+        {
+            return NotFound();
+        }
+    }
+}
+```
+
+In this example:
+
+- The `GET`, `POST`, and `DELETE` methods are implemented to handle CRUD operations on products.
+- The `POST` method is designed to be idempotent by allowing both creation and update of products based on whether the product ID already exists.
+- The `DELETE` method is also idempotent, as deleting a product multiple times has the same effect as deleting it once.
+
+✅ Program.cs
+
+```csharp
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Versioning;
+using Microsoft.OpenApi.Models;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+builder.Services.AddControllers();
+
+// Add Swagger
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API V1", Version = "v1" });
+
+    var xmlFile = $"{typeof(Program).Assembly.GetName().Name}.xml";
+    var xmlPath = System.IO.Path.Combine(System.AppContext.BaseDirectory, xmlFile);
+    c.IncludeXmlComments(xmlPath);
+});
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+    });
+}
+
+app.UseHttpsRedirection();
+app.UseAuthorization();
+app.MapControllers();
+app.Run();
+```
+
 
 ### 🚀 Tools and Technologies
 - **Postman**: A popular tool for testing and documenting APIs.

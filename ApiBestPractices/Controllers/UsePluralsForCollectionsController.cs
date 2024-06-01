@@ -6,7 +6,7 @@ namespace API.UsePluralsForCollectionsController
 {
     [ApiController]
     [Route("[controller]")]
-    public class UsersController : ControllerBase
+    public class UsePluralsForCollectionsUsersController : ControllerBase
     {
         [HttpGet]
         public IEnumerable<string> GetUsers()
@@ -21,7 +21,7 @@ namespace API.UsePluralsForCollectionsController
 
     [ApiController]
     [Route("[controller]")]
-    public class UserController : ControllerBase  // Singular form
+    public class UsePluralsForCollectionsUserController : ControllerBase  // Singular form
     {
         [HttpGet("{id}")]
         public string GetUser(int id)

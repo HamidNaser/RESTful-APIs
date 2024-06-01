@@ -2,11 +2,11 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 
-namespace UseNounsForResourcesController
+namespace Api.UseNounsForResourcesController
 {
     [ApiController]
     [Route("[controller]")]
-    public class UsersNounsController : ControllerBase
+    public class UseNounsForResourcesUsersNounsController : ControllerBase
     {
         [HttpGet]
         public IEnumerable<string> GetUsers()
@@ -19,7 +19,7 @@ namespace UseNounsForResourcesController
 
     [ApiController]
     [Route("[controller]")]
-    public class ProductsNounsController : ControllerBase
+    public class UseNounsForResourcesProductsNounsController : ControllerBase
     {
         [HttpGet]
         public IEnumerable<string> GetProducts()
