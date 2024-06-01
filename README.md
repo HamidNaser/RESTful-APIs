@@ -1,17 +1,4 @@
 
-# Table of Contents 
-- [What is a RESTful API?](#-what-is-a-restful-api)
-- [Features](#-features) 
-
-## 🚀 What is a RESTful API? 
-Welcome to the introduction section. 
-
-## ✅ Features 
-Here are the features of our project.
-
-With this formatting, the link to the Introduction section in the table of contents should work properly when clicked on GitHub.
-
-
 # RESTful API Overview and Implementation Guide
 
 ## Table of Contents
@@ -34,7 +21,7 @@ With this formatting, the link to the Introduction section in the table of conte
 8. [Advanced Topics](#-advanced-topics)
 
 
-## 🚀 What is a RESTful API?
+# 🚀 What is a RESTful API?
 A RESTful API adheres to the principles of REST (Representational State Transfer), using standard HTTP methods and URL structures to provide access to resources.
 
 ## 🚀 Main Principles of REST
@@ -250,7 +237,8 @@ Endpoints are specific URLs that clients interact with to access or manipulate r
  
 
 ## 🚀 Design and Best Practices : 
-## 1. Use nouns for resources (`/users`, `/products`).
+
+## ✅ 1. Use nouns for resources (`/users`, `/products`).
 
 ```csharp
 // ASP.NET Core example
@@ -288,7 +276,7 @@ namespace MyAPI.Controllers
 ```
 
 # Design and Best Practices : 
-## 2. Use plurals for collections (`/users` vs `/user`).
+## ✅ 2. Use plurals for collections (`/users` vs `/user`).
 
 ```csharp
 // ASP.NET Core example
@@ -326,7 +314,7 @@ namespace MyAPI.Controllers
 ```
 
 # Design and Best Practices : 
-## 3. Use hierarchical structure for nested resources (`/users/1/orders`).
+## ✅ 3. Use hierarchical structure for nested resources (`/users/1/orders`).
 
 ```csharp
 using Microsoft.AspNetCore.Mvc;
@@ -391,7 +379,7 @@ In this example,
 
 
 # Design and Best Practices : 
-## 4. Implement HATEOAS
+## ✅ 4. Implement HATEOAS
 
 Implementing HATEOAS (Hypermedia As The Engine Of Application State) involves including hypermedia links in API responses to guide clients on how to navigate the API and discover available actions or resources dynamically. 
 
