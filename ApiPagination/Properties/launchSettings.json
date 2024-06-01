@@ -9,7 +9,7 @@
     }
   },
   "profiles": {
-    "ApiVersioningMajorMinorRevision": {
+    "ApiPagination": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,

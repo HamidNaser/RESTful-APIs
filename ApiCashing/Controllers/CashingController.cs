@@ -14,7 +14,7 @@ public class CsvRecord
 
 [ApiController]
 [Route("api/[controller]")]
-public class CashingController : ControllerBase
+public class CachingController : ControllerBase
 {
     private readonly string _csvFilePath = "data\\data.csv"; // Path to your CSV file
 
@@ -42,85 +42,6 @@ public class CashingController : ControllerBase
         return Ok(record);
     }
 
-    [HttpPost]
-    public async Task<ActionResult<CsvRecord>> AddRecord([FromBody] CsvRecord newRecord)
-    {
-        if (newRecord == null)
-        {
-            return BadRequest();
-        }
-
-        var records = await ReadCsvFileAsync();
-        newRecord.Id = records.Max(r => r.Id) + 1;
-        records.Add(newRecord);
-        await WriteCsvFileAsync(records);
-
-        return CreatedAtAction(nameof(GetRecordById), new { id = newRecord.Id }, newRecord);
-    }
-
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateRecord(int id, [FromBody] CsvRecord updatedRecord)
-    {
-        if (updatedRecord == null || updatedRecord.Id != id)
-        {
-            return BadRequest();
-        }
-
-        var records = await ReadCsvFileAsync();
-        var existingRecord = records.FirstOrDefault(r => r.Id == id);
-        if (existingRecord == null)
-        {
-            return NotFound();
-        }
-
-        existingRecord.Name = updatedRecord.Name;
-        existingRecord.Value = updatedRecord.Value;
-        await WriteCsvFileAsync(records);
-
-        return NoContent();
-    }
-
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteRecord(int id)
-    {
-        var records = await ReadCsvFileAsync();
-        var record = records.FirstOrDefault(r => r.Id == id);
-        if (record == null)
-        {
-            return NotFound();
-        }
-
-        records.Remove(record);
-        await WriteCsvFileAsync(records);
-
-        return NoContent();
-    }
-
-    [HttpPut("batch")]
-    public async Task<IActionResult> UpdateBatchRecords([FromBody] IEnumerable<CsvRecord> updatedRecords)
-    {
-        if (updatedRecords == null || !updatedRecords.Any())
-        {
-            return BadRequest();
-        }
-
-        var records = await ReadCsvFileAsync();
-
-        foreach (var updatedRecord in updatedRecords)
-        {
-            var existingRecord = records.FirstOrDefault(r => r.Id == updatedRecord.Id);
-            if (existingRecord != null)
-            {
-                existingRecord.Name = updatedRecord.Name;
-                existingRecord.Value = updatedRecord.Value;
-            }
-        }
-
-        await WriteCsvFileAsync(records);
-
-        return NoContent();
-    }
-
     private async Task<List<CsvRecord>> ReadCsvFileAsync()
     {
         var records = new List<CsvRecord>();
@@ -143,21 +64,5 @@ public class CashingController : ControllerBase
             }
         }
         return records;
-    }
-
-    private async Task WriteCsvFileAsync(IEnumerable<CsvRecord> records)
-    {
-        using (var writer = new StreamWriter(_csvFilePath))
-        {
-            // Write the header
-            await writer.WriteLineAsync("Id,Name,Value");
-
-            // Write each record
-            foreach (var record in records)
-            {
-                var line = $"{record.Id},{record.Name},{record.Value}";
-                await writer.WriteLineAsync(line);
-            }
-        }
     }
 }

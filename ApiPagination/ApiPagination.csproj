@@ -6,7 +6,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
-		<DocumentationFile>bin\Debug\net6.0\ApiVersioning.xml</DocumentationFile>
+		<DocumentationFile>bin\Debug\net6.0\ApiPagination.xml</DocumentationFile>
 	</PropertyGroup>
 
 	<ItemGroup>

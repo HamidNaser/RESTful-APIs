@@ -1,0 +1,19 @@
+{
+  "Version": 1,
+  "Hash": "BAlVyiyNC/wAFOkwUYKiCDcdTd+r2EILfWj7T22Ra3g=",
+  "Source": "ApiPagination",
+  "BasePath": "_content/ApiPagination",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [
+    {
+      "Name": "ApiPagination\\wwwroot",
+      "Source": "ApiPagination",
+      "ContentRoot": "C:\\GitHub\\RESTful-APIs\\ApiPagination\\wwwroot\\",
+      "BasePath": "_content/ApiPagination",
+      "Pattern": "**"
+    }
+  ],
+  "Assets": []
+}
