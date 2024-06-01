@@ -1,4 +1,4 @@
-﻿using Dapper;
+﻿using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace RESTful_APIs
 {
@@ -13,3 +13,4 @@ namespace RESTful_APIs
         }
     }
 }
+    

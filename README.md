@@ -524,101 +524,103 @@ Using an API gateway helps manage, secure, and monitor traffic. Here’s an exam
      {
        "Routes": [
          {
-           "DownstreamPathTemplate": "/api/users",
-           "DownstreamScheme": "http",
+           "DownstreamPathTemplate": "/users",
+           "DownstreamScheme": "https",
            "DownstreamHostAndPorts": [
              {
                "Host": "localhost",
-               "Port": 5001
+               "Port": 7051 // Port of your RESTful API
              }
            ],
-           "UpstreamPathTemplate": "/gateway/users",
-           "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
-         },
-         {
-           "DownstreamPathTemplate": "/api/products",
-           "DownstreamScheme": "http",
-           "DownstreamHostAndPorts": [
-             {
-               "Host": "localhost",
-               "Port": 5002
-             }
-           ],
-           "UpstreamPathTemplate": "/gateway/products",
-           "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
+           "UpstreamPathTemplate": "/users",
+           "UpstreamHttpMethod": [ "GET" ]
          }
-       ],
-       "GlobalConfiguration": {
-         "BaseUrl": "http://localhost:5000"
-       }
+       ]
      }
      ```
 
 3. **Modify `Startup.cs`**:
    ```csharp
-   public class Startup
-   {
-       public IConfiguration Configuration { get; }
+    using Ocelot.DependencyInjection;
+    using Ocelot.Middleware;
 
-       public Startup(IConfiguration configuration)
-       {
-           Configuration = configuration;
-       }
+    public class Startup
+    {
+        public IConfiguration Configuration { get; }
 
-       public void ConfigureServices(IServiceCollection services)
-       {
-           services.AddOcelot(Configuration);
-       }
+        public Startup(IConfiguration configuration)
+        {
+            Configuration = configuration;
+        }
 
-       public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-       {
-           if (env.IsDevelopment())
-           {
-               app.UseDeveloperExceptionPage();
-           }
+        public void ConfigureServices(IServiceCollection services)
+        {
+            services.AddOcelot(Configuration);
+        }
 
-           app.UseRouting();
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        {
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
 
-           app.UseEndpoints(endpoints =>
-           {
-               endpoints.MapControllers();
-           });
+            app.UseRouting();
 
-           app.UseOcelot().Wait();
-       }
-   }
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
+
+            app.UseOcelot().Wait();
+        }
+    }   
    ```
 
 4. **Modify `Program.cs`**:
    ```csharp
-   public class Program
-   {
-       public static void Main(string[] args)
-       {
-           CreateHostBuilder(args).Build().Run();
-       }
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            CreateHostBuilder(args).Build().Run();
+        }
 
-       public static IHostBuilder CreateHostBuilder(string[] args) =>
-           Host.CreateDefaultBuilder(args)
-               .ConfigureAppConfiguration((hostingContext, config) =>
-               {
-                   config.AddJsonFile("ocelot.json", optional: false, reloadOnChange: true);
-               })
-               .ConfigureWebHostDefaults(webBuilder =>
-               {
-                   webBuilder.UseStartup<Startup>();
-               });
-   }
+        public static IHostBuilder CreateHostBuilder(string[] args) =>
+            Host.CreateDefaultBuilder(args)
+                .ConfigureAppConfiguration((hostingContext, config) =>
+                {
+                    config.AddJsonFile("ocelot.json", optional: false, reloadOnChange: true);
+                })
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder.UseUrls("http://localhost:5000", "https://localhost:5001");
+                    webBuilder.UseStartup<Startup>();
+                });
+    }
    ```
 
 **Create Backend Services**:
-   - Create two ASP.NET Core Web API projects running on different ports (e.g., `5001` and `5002`).
+   - Run the API ApiBestPractices on port 7051
 
-**Run the Gateway and Backend Services**:
+**Run the ApiGateway on port 5000 and Backend Services**:
    - Start the API Gateway project and the backend services.
 
-**Test the API Gateway**:
-   - Use Postman, curl, or any HTTP client to test the routes exposed by the API gateway.
+**Test the API Gateway Using Postman**:
+
+1. **Open Postman**: If you don't have Postman installed, you can download it from the [Postman website](https://www.postman.com/downloads/).
+
+2. **Create a New Request**: Click on the "New" button in Postman to create a new request.
+
+3. **Set Request Method and URL**: Set the request method to `GET` and enter the URL of your API Gateway. For example, if your API Gateway is running locally on port 5000 and you want to access the UsersController, the URL would be `http://localhost:5000/users`.
+
+4. **Send the Request**: Click on the "Send" button to send the request to your API Gateway.
+
+5. **Verify Response**: After sending the request, you should receive a response from your API Gateway. If everything is configured correctly, the API Gateway should forward the request to your RESTful API running on port 7051, and you should receive the response from the UsersController.
+
+6. **Test Different Endpoints**: You can create additional requests in Postman to test different endpoints configured in your API Gateway by changing the request method and URL accordingly.
+
+By following these steps, you can test your API Gateway configuration using Postman and verify that it correctly routes requests to your RESTful API endpoints.
 
 
 # Authentication and Authorization
