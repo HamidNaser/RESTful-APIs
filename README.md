@@ -1,13 +1,15 @@
-[Introduction](#-introduction) 
-[Introduction](#%F0%9F%9A%80-introduction) 
 
 # Table of Contents 
-- [Introduction](#%F0%9F%9A%80-introduction) 
-- [Features](#%E2%9C%85-features) 
+- [Introduction](#-introduction) 
+- [Features](#-features) 
 
-🚀 ## Introduction Welcome to the introduction section. 
-## ✅ Features Here are the features of our project. 
+## 🚀 Introduction 
+Welcome to the introduction section. 
 
+## ✅ Features 
+Here are the features of our project.
+
+With this formatting, the link to the Introduction section in the table of contents should work properly when clicked on GitHub.
 
 
 # RESTful API Overview and Implementation Guide
